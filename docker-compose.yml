@@ -1,0 +1,23 @@
+services:
+  actcalc:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - "127.0.0.1:8000:10000"
+    volumes:
+      - actcalc_data:/data
+    read_only: true
+    tmpfs:
+      - /tmp:rw,nosuid,nodev,size=64m
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen(urllib.request.Request('http://127.0.0.1:10000/api/health',headers={'Host':'actcalc.com'}),timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+volumes:
+  actcalc_data:

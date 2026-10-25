@@ -1,0 +1,42 @@
+name: ACTCalc release checks
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: actcalc-ci-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: pip
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Python dependencies
+        run: python -m pip install -r dev-requirements.txt
+      - name: Build brand assets from the reviewed source
+        run: python build_frontend.py
+      - name: Validate inline JavaScript
+        run: python deploy/check_inline_scripts.py
+      - name: Verify backend and release safeguards
+        run: python -m pytest -q tests/test_backend.py tests/test_backup.py tests/test_release_ops.py tests/test_github_release.py
+      - name: Install browser
+        run: python -m playwright install --with-deps chromium
+      - name: Chromium responsive and workflow smoke tests
+        run: python tests/qa_browser.py
+      - name: Confirm private-by-default release gate
+        run: |
+          if python -m backend.manage check; then
+            echo 'ERROR: CI build must NOT be configured as a public deployment'
+            exit 1
+          fi

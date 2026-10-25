@@ -1,0 +1,59 @@
+# ACTCalc production blueprint. THIS WILL REQUIRE A PAID WEB PLAN AND PERSISTENT DISK.
+# The application deliberately stays unpublished until live launch gates pass.
+# DO NOT enter credential values in this file.
+services:
+  - type: web
+    name: actcalc-production
+    runtime: docker
+    region: frankfurt
+    plan: starter
+    branch: main
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    autoDeployTrigger: checksPass
+    healthCheckPath: /api/health
+    disk:
+      name: actcalc-contact-data
+      mountPath: /data
+      sizeGB: 1
+    envVars:
+      - key: ACTCALC_PUBLIC
+        value: "false"
+      - key: ACTCALC_ALLOW_LOCAL_DEV
+        value: "false"
+      - key: ACTCALC_DB_PATH
+        value: /data/actcalc.sqlite3
+      - key: ACTCALC_ALLOWED_HOSTS
+        value: actcalc.com,www.actcalc.com,*.onrender.com
+      - key: ACTCALC_CONTACT_SECRET
+        generateValue: true
+      - key: ACTCALC_ADMIN_TOKEN
+        generateValue: true
+      - key: ACTCALC_PREVIEW_TOKEN
+        generateValue: true
+      - key: ACTCALC_OPERATOR_NAME
+        sync: false
+      - key: ACTCALC_PRIVACY_EMAIL
+        sync: false
+      - key: ACTCALC_SMTP_HOST
+        sync: false
+      - key: ACTCALC_SMTP_PORT
+        value: "587"
+      - key: ACTCALC_SMTP_MODE
+        value: starttls
+      - key: ACTCALC_SMTP_USER
+        sync: false
+      - key: ACTCALC_SMTP_PASSWORD
+        sync: false
+      - key: ACTCALC_SMTP_SENDER
+        sync: false
+      - key: ACTCALC_SMTP_RECIPIENT
+        sync: false
+      - key: ACTCALC_LEGAL_REVIEW_CONFIRMED
+        value: "false"
+      - key: ACTCALC_SMTP_DELIVERY_VERIFIED
+        value: "false"
+      - key: ACTCALC_BACKUP_RESTORE_VERIFIED
+        value: "false"
+      - key: ACTCALC_LIVE_DEVICE_VERIFIED
+        value: "false"
